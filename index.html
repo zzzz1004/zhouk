@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻宝游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            height: 100%;
+            display: absolute;
+            right: 0;
+        }
+
+        #scene {
+            display: flex;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .scene-part {
+            width: 25%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #scene-1 {
+            background-image: url('library.jpg');
+        }
+
+        #scene-2 {
+            background-image: url('temple1.jpg');
+        }
+
+        #scene-3 {
+            background-image: url('temple2.jpg');
+        }
+
+        #scene-4 {
+            background-image: url('treasure1.jpg');
+        }
+
+        #character {
+            position: absolute;
+            width: 63px;
+            height: 100px;
+            background-image: url('people.jpg');
+            transition: left 2s;
+        }
+
+        #output {
+            background-image: url('cangbaotu1.jpg');
+            position: absolute;
+            top: 410px;
+            left: 0;
+            
+            bottom: 0;
+            overflow-y: auto;
+            /* 超出部分滚动 */
+            font-size: 14px;
+            width: 100%;
+            text-align: center;
+            background-repeat: no-repeat;
+
+        }
+
+        .giant {
+            position: absolute;
+            top: 46px;
+            /* 从上方开始 */
+            left: 65%;
+            /* 从中间开始 */
+            width: 25%;
+            /* 宽度为50% */
+            height: 300px;
+            /* 高度为300px */
+            background-image: url('giant.jpg');
+            /* 替换'giant.png'为你的巨人图像路径 */
+            /* 适应容器大小 */
+            background-repeat: no-repeat;
+            /* 只显示一次 */
+            /* 将其位置调整为相对中心 */
+            display: none;
+            z-index: 10;
+            /* 默认隐藏 */
+            animation: appear 2s forwards;
+            /* 初始时会应用增长动画 */
+        }
+
+        @keyframes appear {
+            0% {
+                transform: translateX(-50%) scale(0);
+                /* 从无到有位置居中 */
+            }
+
+            100% {
+                transform: translateX(-50%) scale(1);
+                /* 结束时为正常大小 */
+            }
+        }
+
+        .shake {
+            animation: shake 2s;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(1px, 0);
+            }
+
+            25% {
+                transform: translate(-1px, 0);
+            }
+
+            50% {
+                transform: translate(1px, 0);
+            }
+
+            75% {
+                transform: translate(-1px, 0);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+
+        @keyframes glow {
+            0% {
+                filter: brightness(1);
+            }
+
+            100% {
+                filter: brightness(1.8);
+            }
+        }
+
+        .treasure-glow {
+            animation: glow 5s infinite;
+        }
+        #startButton {
+            background-image: url('cangbaotu1.jpg');
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="scene">
+        <div id="scene-1" class="scene-part"></div>
+        <div id="scene-2" class="scene-part"></div>
+        <div id="scene-3" class="scene-part"></div>
+        <div id="scene-4" class="scene-part"></div>
+        <div id="giant" class="giant" style="display: none;"></div>
+    </div>
+    <div id="character"></div>
+    <div id="output">
+        <button id="startButton">开始游戏</button>
+    </div>
+
+    <script>
+        // 显示输出  
+        function showOutput(message) {
+            const outputElement = document.getElementById('output');
+            outputElement.innerHTML += `<p>${message}</p>`;
+        }
+        // 模拟宝藏地图API  
+        class TreasureMap {
+            static getInitialClue() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("在古老的图书馆里找到了第一个线索...");
+                    }, 3000);
+                });
+            }
+
+            static decodeAncientScript(clue) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (!clue) {
+                            reject("没有线索可以解码!");
+                        }
+                        resolve("解码成功!宝藏在一座古老的神庙中...");
+                    }, 1000);
+                });
+            }
+
+            static serachTemple() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("找到一个神秘的入口...");
+                    }, 2000);
+                });
+            }
+
+            static incident(location) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.5) {
+                            reject("糟糕!遇到了神庙守卫!");
+                        }
+                        resolve("继续深入寺庙");
+                    }, 2000);
+                });
+            }
+
+            static openTreasureBox() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("恭喜!你找到了传说中的宝藏!");
+                    }, 3000);
+                });
+            }
+        }
+
+        async function findTreasureWithAsyncAwait() {
+            try {
+                showScene(1);
+                showOutput("开始寻宝...");
+                const clue = await TreasureMap.getInitialClue();
+                showOutput(clue);
+                moveCharacter(140); // 角色进入第一个场景  
+
+
+                showOutput("正在解码古老的文字...");
+                const location = await TreasureMap.decodeAncientScript(clue);
+                showOutput(location);
+
+                showOutput("前往神庙，寻找宝藏的线索...");
+                await showScene(2);
+                moveCharacter(480);
+                const enter = await TreasureMap.serachTemple();
+                showOutput(enter);
+
+                await showScene(3);
+                moveCharacter(800);
+                const box = await TreasureMap.incident(location);
+                showOutput(box);
+                // 角色进入第三个场景  
+
+                // 场景4: 找到宝箱  
+                await showScene(4);
+                moveCharacter(1150)
+                showOutput("找到了一个宝箱并打开...");
+
+                const treasure = await TreasureMap.openTreasureBox();
+                showOutput(treasure);
+                const treasureBoxElement = document.getElementById('scene-4');
+                treasureBoxElement.style.backgroundImage = "url('treasure2.jpg')"; // 改变宝箱图像
+                treasureBoxElement.classList.add('treasure-glow');
+                showOutput("任务完成! 你成为了传说中的探险家!");
+
+
+            } catch (error) {
+                console.error("任务失败:", error);
+                showOutput("任务失败: " + error);
+                const characterElement = document.getElementById('character');
+                characterElement.classList.add('shake'); // 失败时添加抖动动画  
+
+
+                const giantElement = document.getElementById('giant');
+                giantElement.style.display = 'block'; // 显示巨人  
+                giantElement.classList.add('appear');
+
+                setTimeout(() => {
+                    characterElement.classList.remove('shake'); // 动画结束后移除类  
+                }, 2000); // 动画持续时间  
+            }
+        }
+
+        function moveCharacter(position) {
+            const characterElement = document.getElementById('character');
+            characterElement.style.left = position + 'px';
+        }
+
+        async function showScene(sceneNumber) {
+            // 先隐藏所有场景  
+            const scenes = document.querySelectorAll('.scene-part');
+            scenes.forEach(scene => {
+                scene.style.opacity = '0';
+            });
+            // 等待动画完成  
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // 显示当前场景  
+            const currentScene = document.getElementById(`scene-${sceneNumber}`);
+            currentScene.style.opacity = '1';
+            currentScene.style.zIndex = '1'; // 确保当前场景在最上面  
+
+        }
+
+        document.getElementById('startButton').addEventListener('click', function () {
+            this.style.display = 'none'; // 点击后隐藏按钮  
+            document.getElementById('output').style.display = 'block'; // 显示输出区域  
+            findTreasureWithAsyncAwait(); // 启动寻宝过程  
+        }); 
+    </script>
+
+</body>
+
+</html>
